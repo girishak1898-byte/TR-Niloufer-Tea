@@ -13,6 +13,8 @@ import type {
   ProofUpload,
   MovementType,
   ProofStatus,
+  AdminProfile,
+  AdminRole,
 } from '@/lib/types';
 
 // ---------- Auth ----------
@@ -930,6 +932,121 @@ export async function linkProofToMovement(proofId: string, movementId: string) {
     return { success: true };
   } catch {
     return { success: false, error: 'Failed to link proof to movement' };
+  }
+}
+
+// ---------- Admin Role Management ----------
+
+export async function getAdminRole(): Promise<{ success: boolean; role: AdminRole | null }> {
+  try {
+    const authClient = await createClient();
+    const { data: { user } } = await authClient.auth.getUser();
+    if (!user) return { success: false, role: null };
+
+    const supabase = createServiceClient();
+    const { data } = await supabase
+      .from('admin_profiles')
+      .select('role')
+      .eq('user_id', user.id)
+      .single();
+
+    return { success: true, role: (data?.role as AdminRole) ?? 'admin' };
+  } catch {
+    return { success: false, role: null };
+  }
+}
+
+export async function getAdminProfiles(): Promise<{ success: boolean; data: AdminProfile[]; error?: string }> {
+  try {
+    const supabase = createServiceClient();
+    const { data, error } = await supabase
+      .from('admin_profiles')
+      .select('*')
+      .order('created_at');
+
+    if (error) throw error;
+
+    // Join email from auth.users
+    const profiles = data ?? [];
+    const userIds = profiles.map((p) => p.user_id);
+    let emailMap: Record<string, string> = {};
+    if (userIds.length > 0) {
+      const { data: { users } } = await supabase.auth.admin.listUsers();
+      for (const u of users ?? []) {
+        if (userIds.includes(u.id)) {
+          emailMap[u.id] = u.email ?? '';
+        }
+      }
+    }
+
+    return {
+      success: true,
+      data: profiles.map((p) => ({ ...p, email: emailMap[p.user_id] ?? '' })) as AdminProfile[],
+    };
+  } catch {
+    return { success: false, data: [], error: 'Failed to fetch admin profiles' };
+  }
+}
+
+export async function createAdminUser(email: string, password: string, role: AdminRole, displayName: string) {
+  try {
+    // Check caller is superadmin
+    const roleCheck = await getAdminRole();
+    if (roleCheck.role !== 'superadmin') {
+      return { success: false, error: 'Only superadmins can add admin users' };
+    }
+
+    if (!email.trim() || !password || password.length < 6) {
+      return { success: false, error: 'Valid email and password (min 6 chars) required' };
+    }
+
+    const supabase = createServiceClient();
+
+    // Create auth user
+    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+      email: email.trim(),
+      password,
+      email_confirm: true,
+    });
+
+    if (authError) throw authError;
+    if (!authData.user) throw new Error('User creation failed');
+
+    // Create admin profile
+    const { error: profileError } = await supabase
+      .from('admin_profiles')
+      .insert({
+        user_id: authData.user.id,
+        role,
+        display_name: displayName.trim() || null,
+      });
+
+    if (profileError) throw profileError;
+
+    return { success: true };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Failed to create admin user';
+    return { success: false, error: message };
+  }
+}
+
+export async function updateAdminRole(profileId: string, role: AdminRole) {
+  try {
+    const roleCheck = await getAdminRole();
+    if (roleCheck.role !== 'superadmin') {
+      return { success: false, error: 'Only superadmins can change roles' };
+    }
+
+    const supabase = createServiceClient();
+    const { error } = await supabase
+      .from('admin_profiles')
+      .update({ role })
+      .eq('id', profileId);
+
+    if (error) throw error;
+    return { success: true };
+  } catch {
+    return { success: false, error: 'Failed to update role' };
   }
 }
 

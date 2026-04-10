@@ -17,7 +17,7 @@ interface WorkerRow {
   updated_at: string;
 }
 
-export default function WorkersPage() {
+export default function EmployeesPage() {
   const [workers, setWorkers] = useState<WorkerRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -45,14 +45,14 @@ export default function WorkersPage() {
       );
       fetchWorkers();
     } else {
-      addToast(result.error ?? 'Failed to update worker', 'error');
+      addToast(result.error ?? 'Failed to update employee', 'error');
     }
   }
 
   if (loading) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <div className="text-gray-500">Loading workers...</div>
+        <div className="text-gray-500">Loading employees...</div>
       </div>
     );
   }
@@ -60,11 +60,11 @@ export default function WorkersPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">Workers</h1>
-        <Button onClick={() => setShowAddModal(true)}>Add Worker</Button>
+        <h1 className="text-2xl font-bold text-gray-900">Employees</h1>
+        <Button onClick={() => setShowAddModal(true)}>Add Employee</Button>
       </div>
 
-      {/* Workers Table */}
+      {/* Employees Table */}
       <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -80,7 +80,7 @@ export default function WorkersPage() {
               {workers.length === 0 ? (
                 <tr>
                   <td colSpan={4} className="px-6 py-8 text-center text-gray-500">
-                    No workers found. Add your first worker to get started.
+                    No employees found. Add your first employee to get started.
                   </td>
                 </tr>
               ) : (
@@ -127,27 +127,27 @@ export default function WorkersPage() {
         </div>
       </div>
 
-      {/* Add Worker Modal */}
-      <AddWorkerModal
+      {/* Add Employee Modal */}
+      <AddEmployeeModal
         open={showAddModal}
         onClose={() => setShowAddModal(false)}
         onSuccess={() => {
           setShowAddModal(false);
-          addToast('Worker created successfully', 'success');
+          addToast('Employee created successfully', 'success');
           fetchWorkers();
         }}
         onError={(err) => addToast(err, 'error')}
       />
 
-      {/* Edit Worker Modal */}
+      {/* Edit Employee Modal */}
       {editingWorker && (
-        <EditWorkerModal
+        <EditEmployeeModal
           open={!!editingWorker}
           worker={editingWorker}
           onClose={() => setEditingWorker(null)}
           onSuccess={() => {
             setEditingWorker(null);
-            addToast('Worker updated successfully', 'success');
+            addToast('Employee updated successfully', 'success');
             fetchWorkers();
           }}
           onError={(err) => addToast(err, 'error')}
@@ -159,7 +159,7 @@ export default function WorkersPage() {
   );
 }
 
-function AddWorkerModal({
+function AddEmployeeModal({
   open,
   onClose,
   onSuccess,
@@ -185,19 +185,19 @@ function AddWorkerModal({
       setPin('');
       onSuccess();
     } else {
-      onError(result.error ?? 'Failed to create worker');
+      onError(result.error ?? 'Failed to create employee');
     }
   }
 
   return (
-    <Modal open={open} onClose={onClose} title="Add Worker">
+    <Modal open={open} onClose={onClose} title="Add Employee">
       <form onSubmit={handleSubmit} className="space-y-4">
         <Input
           id="worker-name"
           label="Name"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="Enter worker name"
+          placeholder="Enter employee name"
           required
         />
         <Input
@@ -217,7 +217,7 @@ function AddWorkerModal({
             Cancel
           </Button>
           <Button type="submit" disabled={saving}>
-            {saving ? 'Creating...' : 'Create Worker'}
+            {saving ? 'Creating...' : 'Create Employee'}
           </Button>
         </div>
       </form>
@@ -225,7 +225,7 @@ function AddWorkerModal({
   );
 }
 
-function EditWorkerModal({
+function EditEmployeeModal({
   open,
   worker,
   onClose,
@@ -258,12 +258,12 @@ function EditWorkerModal({
     if (result.success) {
       onSuccess();
     } else {
-      onError(result.error ?? 'Failed to update worker');
+      onError(result.error ?? 'Failed to update employee');
     }
   }
 
   return (
-    <Modal open={open} onClose={onClose} title="Edit Worker">
+    <Modal open={open} onClose={onClose} title="Edit Employee">
       <form onSubmit={handleSubmit} className="space-y-4">
         <Input
           id="edit-worker-name"

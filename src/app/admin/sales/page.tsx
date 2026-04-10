@@ -99,7 +99,7 @@ export default function SalesPage() {
           />
           <div className="w-full">
             <label htmlFor="filter-worker" className="mb-1.5 block text-sm font-medium text-gray-700">
-              Worker
+              Employee
             </label>
             <select
               id="filter-worker"
@@ -107,7 +107,7 @@ export default function SalesPage() {
               onChange={(e) => setWorkerId(e.target.value)}
               className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-base focus:border-chai-500 focus:outline-none focus:ring-2 focus:ring-chai-500/20"
             >
-              <option value="">All Workers</option>
+              <option value="">All Employees</option>
               {workers.map((w) => (
                 <option key={w.id} value={w.id}>
                   {w.name}
@@ -167,7 +167,7 @@ export default function SalesPage() {
                 <tr className="border-b border-gray-200 bg-gray-50 text-left text-gray-500">
                   <th className="w-8 px-4 py-3" />
                   <th className="px-4 py-3 font-medium">Date/Time</th>
-                  <th className="px-4 py-3 font-medium">Worker</th>
+                  <th className="px-4 py-3 font-medium">Employee</th>
                   <th className="px-4 py-3 font-medium">Items</th>
                   <th className="px-4 py-3 font-medium">Payment</th>
                   <th className="px-4 py-3 text-right font-medium">Total</th>

@@ -145,7 +145,25 @@ export interface ProofUpload {
   reviewed_at: string | null;
   review_note: string | null;
   linked_movement_id: string | null;
+  quantity: number | null;
+  amount_pence: number | null;
   created_at: string;
+}
+
+// ---------- Offline ----------
+
+// ---------- Admin ----------
+
+export type AdminRole = 'superadmin' | 'admin';
+
+export interface AdminProfile {
+  id: string;
+  user_id: string;
+  role: AdminRole;
+  display_name: string | null;
+  created_at: string;
+  updated_at: string;
+  email?: string; // joined from auth.users
 }
 
 // ---------- Offline ----------

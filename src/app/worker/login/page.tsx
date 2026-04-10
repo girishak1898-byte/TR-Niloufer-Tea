@@ -30,7 +30,7 @@ export default function WorkerLoginPage() {
       if (result.success) {
         setWorkers(result.data);
       } else {
-        addToast(result.error ?? 'Failed to load workers', 'error');
+        addToast(result.error ?? 'Failed to load employees', 'error');
       }
       setLoading(false);
     }
@@ -91,7 +91,7 @@ export default function WorkerLoginPage() {
 
           {workers.length === 0 && (
             <p className="mt-4 text-center text-sm text-gray-500">
-              No workers found. Ask admin to add workers.
+              No employees found. Ask admin to add employees.
             </p>
           )}
         </div>
@@ -112,7 +112,7 @@ export default function WorkerLoginPage() {
 
           <div className="mt-6 text-center">
             <Button variant="ghost" onClick={handleBack} disabled={submitting}>
-              Back to worker selection
+              Back to employee selection
             </Button>
           </div>
         </div>

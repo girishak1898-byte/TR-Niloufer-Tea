@@ -203,11 +203,11 @@ export default function ReportsPage() {
             )}
           </div>
 
-          {/* Worker Performance & Top Products side by side */}
+          {/* Employee Performance & Top Products side by side */}
           <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-            {/* Worker Performance */}
+            {/* Employee Performance */}
             <div className="rounded-xl border border-gray-200 bg-white p-6">
-              <h2 className="mb-4 text-lg font-semibold text-gray-900">Worker Performance</h2>
+              <h2 className="mb-4 text-lg font-semibold text-gray-900">Employee Performance</h2>
               {report.worker_totals.length === 0 ? (
                 <p className="text-sm text-gray-500">No data</p>
               ) : (
@@ -215,7 +215,7 @@ export default function ReportsPage() {
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-gray-200 text-left text-gray-500">
-                        <th className="pb-3 font-medium">Worker</th>
+                        <th className="pb-3 font-medium">Employee</th>
                         <th className="pb-3 font-medium">Sales</th>
                         <th className="pb-3 text-right font-medium">Revenue</th>
                       </tr>

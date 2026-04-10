@@ -104,6 +104,13 @@ export default function ProofsPage() {
               {proof.supplier_name && (
                 <p className="text-sm text-gray-600">Supplier: {proof.supplier_name}</p>
               )}
+              {(proof.quantity || proof.amount_pence) && (
+                <p className="text-sm text-gray-600">
+                  {proof.quantity ? `Qty: ${proof.quantity}` : ''}
+                  {proof.quantity && proof.amount_pence ? ' · ' : ''}
+                  {proof.amount_pence ? `£${(proof.amount_pence / 100).toFixed(2)}` : ''}
+                </p>
+              )}
               {proof.uploader_note && (
                 <p className="mt-1 text-sm text-gray-500">{proof.uploader_note}</p>
               )}
@@ -167,6 +174,8 @@ export default function ProofsPage() {
               <p><strong>Size:</strong> {(previewProof.file_size_bytes / 1024).toFixed(0)} KB</p>
               {previewProof.submitted_name && <p><strong>Submitted by:</strong> {previewProof.submitted_name}</p>}
               {previewProof.supplier_name && <p><strong>Supplier:</strong> {previewProof.supplier_name}</p>}
+              {previewProof.quantity && <p><strong>Quantity:</strong> {previewProof.quantity}</p>}
+              {previewProof.amount_pence && <p><strong>Amount:</strong> £{(previewProof.amount_pence / 100).toFixed(2)}</p>}
               {previewProof.uploader_note && <p><strong>Note:</strong> {previewProof.uploader_note}</p>}
             </div>
 

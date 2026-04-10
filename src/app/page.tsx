@@ -17,13 +17,19 @@ export default function HomePage() {
           href="/worker/login"
           className="rounded-xl bg-chai-600 px-8 py-4 text-center text-lg font-semibold text-white shadow-lg transition-colors hover:bg-chai-700 active:bg-chai-800"
         >
-          Worker Portal
+          Employee Portal
         </Link>
         <Link
           href="/admin/login"
           className="rounded-xl bg-gray-800 px-8 py-4 text-center text-lg font-semibold text-white shadow-lg transition-colors hover:bg-gray-900 active:bg-gray-950"
         >
           Admin Portal
+        </Link>
+        <Link
+          href="/upload"
+          className="rounded-xl border-2 border-chai-300 bg-white px-8 py-4 text-center text-lg font-semibold text-chai-700 shadow-lg transition-colors hover:bg-chai-50 active:bg-chai-100"
+        >
+          Upload Bill / Receipt
         </Link>
       </div>
     </div>

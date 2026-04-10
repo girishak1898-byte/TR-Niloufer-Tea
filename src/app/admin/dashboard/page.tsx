@@ -119,7 +119,7 @@ export default function DashboardPage() {
         <StatCard
           title="Orders Today"
           value={String(stats?.total_sales ?? 0)}
-          subtitle={`${stats?.active_workers ?? 0} active workers`}
+          subtitle={`${stats?.active_workers ?? 0} active employees`}
           icon={
             <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
@@ -143,7 +143,7 @@ export default function DashboardPage() {
                   <thead>
                     <tr className="border-b border-gray-200 text-left text-gray-500">
                       <th className="pb-3 pr-3 font-medium">Time</th>
-                      <th className="pb-3 pr-3 font-medium">Worker</th>
+                      <th className="pb-3 pr-3 font-medium">Employee</th>
                       <th className="hidden pb-3 pr-3 font-medium sm:table-cell">Items</th>
                       <th className="pb-3 pr-3 font-medium">Payment</th>
                       <th className="pb-3 pr-3 text-right font-medium">Total</th>
@@ -212,9 +212,9 @@ export default function DashboardPage() {
             )}
           </div>
 
-          {/* Worker Performance */}
+          {/* Employee Performance */}
           <div className="rounded-xl border border-gray-200 bg-white p-6">
-            <h2 className="mb-4 text-lg font-semibold text-gray-900">Worker Performance</h2>
+            <h2 className="mb-4 text-lg font-semibold text-gray-900">Employee Performance</h2>
             {stats?.worker_performance && stats.worker_performance.length > 0 ? (
               <div className="space-y-3">
                 {stats.worker_performance.map((w) => (
@@ -228,7 +228,7 @@ export default function DashboardPage() {
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-gray-500">No worker data yet</p>
+              <p className="text-sm text-gray-500">No employee data yet</p>
             )}
           </div>
 
@@ -236,7 +236,7 @@ export default function DashboardPage() {
           <div className="rounded-xl border border-gray-200 bg-white p-6">
             <h2 className="mb-4 text-lg font-semibold text-gray-900">Active Shifts</h2>
             {activeShifts.length === 0 ? (
-              <p className="text-sm text-gray-500">No workers currently on shift</p>
+              <p className="text-sm text-gray-500">No employees currently on shift</p>
             ) : (
               <div className="space-y-3">
                 {activeShifts.map((shift) => (

@@ -6,6 +6,22 @@ import sharp from 'sharp';
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
 
+export async function getPublicInventoryItemNames() {
+  try {
+    const supabase = createServiceClient();
+    const { data, error } = await supabase
+      .from('inventory_items')
+      .select('id, name')
+      .eq('is_active', true)
+      .order('name');
+
+    if (error) throw error;
+    return { success: true, data: (data ?? []) as { id: string; name: string }[] };
+  } catch {
+    return { success: false, data: [] };
+  }
+}
+
 export async function uploadProof(formData: FormData) {
   try {
     const file = formData.get('file') as File | null;
@@ -13,6 +29,11 @@ export async function uploadProof(formData: FormData) {
     const itemName = (formData.get('item_name') as string)?.trim() || null;
     const supplierName = (formData.get('supplier_name') as string)?.trim() || null;
     const uploaderNote = (formData.get('uploader_note') as string)?.trim() || null;
+    const quantityStr = (formData.get('quantity') as string)?.trim() || null;
+    const amountStr = (formData.get('amount') as string)?.trim() || null;
+
+    const quantity = quantityStr ? parseFloat(quantityStr) : null;
+    const amountPence = amountStr ? Math.round(parseFloat(amountStr) * 100) : null;
 
     if (!file) {
       return { success: false, error: 'No file provided' };
@@ -87,6 +108,8 @@ export async function uploadProof(formData: FormData) {
         item_name: itemName,
         supplier_name: supplierName,
         uploader_note: uploaderNote,
+        quantity,
+        amount_pence: amountPence,
         status: 'pending',
       });
 
