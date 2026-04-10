@@ -8,6 +8,11 @@ import type {
   SaleWithItems,
   DailySummary,
   AuditLog,
+  InventoryItem,
+  InventoryMovementWithItem,
+  ProofUpload,
+  MovementType,
+  ProofStatus,
 } from '@/lib/types';
 
 // ---------- Auth ----------
@@ -669,5 +674,317 @@ export async function getRecentSales(limit: number = 10) {
     return { success: true, data: salesWithItems };
   } catch {
     return { success: false, error: 'Failed to fetch recent sales', data: [] };
+  }
+}
+
+// ---------- Inventory Items ----------
+
+export async function getInventoryItems() {
+  try {
+    const supabase = createServiceClient();
+    const { data, error } = await supabase
+      .from('inventory_items')
+      .select('*')
+      .order('name');
+
+    if (error) throw error;
+    return { success: true, data: (data ?? []) as InventoryItem[] };
+  } catch {
+    return { success: false, error: 'Failed to fetch inventory items', data: [] };
+  }
+}
+
+export async function createInventoryItem(itemData: {
+  name: string;
+  unit: string;
+  current_stock: number;
+  low_stock_threshold: number;
+}) {
+  try {
+    if (!itemData.name.trim()) return { success: false, error: 'Name is required' };
+
+    const supabase = createServiceClient();
+    const { data, error } = await supabase
+      .from('inventory_items')
+      .insert({
+        name: itemData.name.trim(),
+        unit: itemData.unit.trim() || 'units',
+        current_stock: itemData.current_stock,
+        low_stock_threshold: itemData.low_stock_threshold,
+        is_active: true,
+      })
+      .select('*')
+      .single();
+
+    if (error) throw error;
+    return { success: true, data };
+  } catch {
+    return { success: false, error: 'Failed to create inventory item' };
+  }
+}
+
+export async function updateInventoryItem(
+  id: string,
+  itemData: { name?: string; unit?: string; low_stock_threshold?: number; is_active?: boolean }
+) {
+  try {
+    const supabase = createServiceClient();
+    const payload: Record<string, unknown> = {};
+    if (itemData.name !== undefined) payload.name = itemData.name.trim();
+    if (itemData.unit !== undefined) payload.unit = itemData.unit.trim();
+    if (itemData.low_stock_threshold !== undefined) payload.low_stock_threshold = itemData.low_stock_threshold;
+    if (itemData.is_active !== undefined) payload.is_active = itemData.is_active;
+
+    const { error } = await supabase
+      .from('inventory_items')
+      .update(payload)
+      .eq('id', id);
+
+    if (error) throw error;
+    return { success: true };
+  } catch {
+    return { success: false, error: 'Failed to update inventory item' };
+  }
+}
+
+// ---------- Inventory Movements ----------
+
+export async function recordMovement(movementData: {
+  inventory_item_id: string;
+  movement_type: MovementType;
+  quantity: number;
+  note?: string;
+}) {
+  try {
+    const supabase = createServiceClient();
+    const authClient = await createClient();
+    const { data: { user } } = await authClient.auth.getUser();
+
+    // Enforce sign: usage/waste are negative, purchase/adjustment keep user sign
+    let qty = movementData.quantity;
+    if ((movementData.movement_type === 'usage' || movementData.movement_type === 'waste') && qty > 0) {
+      qty = -qty;
+    }
+
+    const { error } = await supabase
+      .from('inventory_movements')
+      .insert({
+        inventory_item_id: movementData.inventory_item_id,
+        movement_type: movementData.movement_type,
+        quantity: qty,
+        note: movementData.note?.trim() || null,
+        performed_by: user?.email ?? 'admin',
+      });
+
+    if (error) throw error;
+    return { success: true };
+  } catch {
+    return { success: false, error: 'Failed to record movement' };
+  }
+}
+
+export async function getInventoryMovements(filters?: {
+  itemId?: string;
+  limit?: number;
+}) {
+  try {
+    const supabase = createServiceClient();
+    const limit = filters?.limit ?? 50;
+
+    let query = supabase
+      .from('inventory_movements')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (filters?.itemId) {
+      query = query.eq('inventory_item_id', filters.itemId);
+    }
+
+    const { data: movements, error } = await query;
+    if (error) throw error;
+
+    // Join item names
+    const itemIds = [...new Set((movements ?? []).map((m) => m.inventory_item_id))];
+    let itemNames: Record<string, string> = {};
+    if (itemIds.length > 0) {
+      const { data: items } = await supabase
+        .from('inventory_items')
+        .select('id, name')
+        .in('id', itemIds);
+      for (const item of items ?? []) {
+        itemNames[item.id] = item.name;
+      }
+    }
+
+    const result: InventoryMovementWithItem[] = (movements ?? []).map((m) => ({
+      ...m,
+      item_name: itemNames[m.inventory_item_id] ?? 'Unknown',
+    }));
+
+    return { success: true, data: result };
+  } catch {
+    return { success: false, error: 'Failed to fetch movements', data: [] };
+  }
+}
+
+// ---------- Proof Uploads ----------
+
+export async function getProofs(filters?: {
+  status?: ProofStatus;
+  limit?: number;
+}) {
+  try {
+    const supabase = createServiceClient();
+    const limit = filters?.limit ?? 50;
+
+    let query = supabase
+      .from('proof_uploads')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (filters?.status) {
+      query = query.eq('status', filters.status);
+    }
+
+    const { data, error } = await query;
+    if (error) throw error;
+    return { success: true, data: (data ?? []) as ProofUpload[] };
+  } catch {
+    return { success: false, error: 'Failed to fetch proofs', data: [] };
+  }
+}
+
+export async function getProofSignedUrl(storagePath: string) {
+  try {
+    const supabase = createServiceClient();
+    const { data, error } = await supabase.storage
+      .from('proof-uploads')
+      .createSignedUrl(storagePath, 60);
+
+    if (error) throw error;
+    return { success: true, url: data.signedUrl };
+  } catch {
+    return { success: false, error: 'Failed to get file URL' };
+  }
+}
+
+export async function reviewProof(
+  proofId: string,
+  action: 'approved' | 'rejected',
+  reviewNote?: string
+) {
+  try {
+    const supabase = createServiceClient();
+    const authClient = await createClient();
+    const { data: { user } } = await authClient.auth.getUser();
+
+    const { error } = await supabase
+      .from('proof_uploads')
+      .update({
+        status: action,
+        reviewed_by: user?.email ?? 'admin',
+        reviewed_at: new Date().toISOString(),
+        review_note: reviewNote?.trim() || null,
+      })
+      .eq('id', proofId);
+
+    if (error) throw error;
+    return { success: true };
+  } catch {
+    return { success: false, error: 'Failed to review proof' };
+  }
+}
+
+export async function linkProofToMovement(proofId: string, movementId: string) {
+  try {
+    const supabase = createServiceClient();
+
+    // Verify proof is approved
+    const { data: proof } = await supabase
+      .from('proof_uploads')
+      .select('status')
+      .eq('id', proofId)
+      .single();
+
+    if (proof?.status !== 'approved') {
+      return { success: false, error: 'Only approved proofs can be linked' };
+    }
+
+    // Update both sides
+    const { error: e1 } = await supabase
+      .from('proof_uploads')
+      .update({ linked_movement_id: movementId })
+      .eq('id', proofId);
+
+    if (e1) throw e1;
+
+    const { error: e2 } = await supabase
+      .from('inventory_movements')
+      .update({ proof_upload_id: proofId })
+      .eq('id', movementId);
+
+    if (e2) throw e2;
+
+    return { success: true };
+  } catch {
+    return { success: false, error: 'Failed to link proof to movement' };
+  }
+}
+
+// ---------- Inventory Dashboard Stats ----------
+
+export async function getInventoryDashboardStats() {
+  try {
+    const supabase = createServiceClient();
+
+    const { data: items } = await supabase
+      .from('inventory_items')
+      .select('*')
+      .eq('is_active', true);
+
+    const allItems = (items ?? []) as InventoryItem[];
+    const lowStock = allItems.filter((i) => i.current_stock > 0 && i.current_stock <= i.low_stock_threshold);
+    const outOfStock = allItems.filter((i) => i.current_stock <= 0);
+
+    const { data: pendingProofs } = await supabase
+      .from('proof_uploads')
+      .select('id')
+      .eq('status', 'pending');
+
+    const { data: recentMovements } = await supabase
+      .from('inventory_movements')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(5);
+
+    // Join item names for movements
+    const movementItemIds = [...new Set((recentMovements ?? []).map((m) => m.inventory_item_id))];
+    let itemNames: Record<string, string> = {};
+    if (movementItemIds.length > 0) {
+      const { data: nameData } = await supabase
+        .from('inventory_items')
+        .select('id, name')
+        .in('id', movementItemIds);
+      for (const n of nameData ?? []) {
+        itemNames[n.id] = n.name;
+      }
+    }
+
+    return {
+      success: true,
+      data: {
+        low_stock: lowStock,
+        out_of_stock: outOfStock,
+        pending_proofs_count: (pendingProofs ?? []).length,
+        recent_movements: (recentMovements ?? []).map((m) => ({
+          ...m,
+          item_name: itemNames[m.inventory_item_id] ?? 'Unknown',
+        })) as InventoryMovementWithItem[],
+      },
+    };
+  } catch {
+    return { success: false, error: 'Failed to fetch inventory stats', data: null };
   }
 }

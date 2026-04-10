@@ -2,8 +2,8 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { formatCurrency, formatDateTime } from '@/lib/utils';
-import { getAdminDashboardStats, getActiveShifts, getRecentSales } from '@/app/admin/actions';
-import type { SaleWithItems } from '@/lib/types';
+import { getAdminDashboardStats, getActiveShifts, getRecentSales, getInventoryDashboardStats } from '@/app/admin/actions';
+import type { SaleWithItems, InventoryItem, InventoryMovementWithItem } from '@/lib/types';
 
 interface DashboardStats {
   total_sales: number;
@@ -28,13 +28,18 @@ export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [activeShifts, setActiveShifts] = useState<ActiveShift[]>([]);
   const [recentSales, setRecentSales] = useState<SaleWithItems[]>([]);
+  const [lowStock, setLowStock] = useState<InventoryItem[]>([]);
+  const [outOfStock, setOutOfStock] = useState<InventoryItem[]>([]);
+  const [pendingProofsCount, setPendingProofsCount] = useState(0);
+  const [recentMovements, setRecentMovements] = useState<InventoryMovementWithItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchData = useCallback(async () => {
-    const [statsResult, shiftsResult, salesResult] = await Promise.all([
+    const [statsResult, shiftsResult, salesResult, invResult] = await Promise.all([
       getAdminDashboardStats(),
       getActiveShifts(),
       getRecentSales(10),
+      getInventoryDashboardStats(),
     ]);
 
     if (statsResult.success && statsResult.data) {
@@ -45,6 +50,12 @@ export default function DashboardPage() {
     }
     if (salesResult.success) {
       setRecentSales(salesResult.data);
+    }
+    if (invResult.success && invResult.data) {
+      setLowStock(invResult.data.low_stock);
+      setOutOfStock(invResult.data.out_of_stock);
+      setPendingProofsCount(invResult.data.pending_proofs_count);
+      setRecentMovements(invResult.data.recent_movements);
     }
     setLoading(false);
   }, []);
@@ -250,6 +261,62 @@ export default function DashboardPage() {
               </div>
             )}
           </div>
+
+          {/* Stock Alerts */}
+          {(outOfStock.length > 0 || lowStock.length > 0) && (
+            <div className="rounded-xl border border-gray-200 bg-white p-6">
+              <h2 className="mb-4 text-lg font-semibold text-gray-900">Stock Alerts</h2>
+              <div className="space-y-2">
+                {outOfStock.map((item) => (
+                  <div key={item.id} className="flex items-center justify-between rounded-lg bg-red-50 px-4 py-2.5">
+                    <span className="font-medium text-red-800">{item.name}</span>
+                    <span className="text-xs font-semibold text-red-600">OUT OF STOCK</span>
+                  </div>
+                ))}
+                {lowStock.map((item) => (
+                  <div key={item.id} className="flex items-center justify-between rounded-lg bg-amber-50 px-4 py-2.5">
+                    <span className="font-medium text-amber-800">{item.name}</span>
+                    <span className="text-xs font-semibold text-amber-600">{Number(item.current_stock)} {item.unit} left</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Pending Proofs */}
+          {pendingProofsCount > 0 && (
+            <a href="/admin/proofs" className="block rounded-xl border border-amber-200 bg-amber-50 p-6 transition-colors hover:bg-amber-100">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-lg font-semibold text-amber-900">Pending Proofs</h2>
+                  <p className="text-sm text-amber-700">{pendingProofsCount} upload{pendingProofsCount !== 1 ? 's' : ''} awaiting review</p>
+                </div>
+                <svg className="h-5 w-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+            </a>
+          )}
+
+          {/* Recent Movements */}
+          {recentMovements.length > 0 && (
+            <div className="rounded-xl border border-gray-200 bg-white p-6">
+              <h2 className="mb-4 text-lg font-semibold text-gray-900">Recent Stock Movements</h2>
+              <div className="space-y-2">
+                {recentMovements.map((m) => (
+                  <div key={m.id} className="flex items-center justify-between rounded-lg bg-gray-50 px-4 py-2.5">
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">{m.item_name}</p>
+                      <p className="text-xs text-gray-500">{m.movement_type}</p>
+                    </div>
+                    <span className={`text-sm font-semibold ${Number(m.quantity) > 0 ? 'text-green-700' : 'text-red-700'}`}>
+                      {Number(m.quantity) > 0 ? '+' : ''}{Number(m.quantity)}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

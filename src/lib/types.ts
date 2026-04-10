@@ -98,6 +98,58 @@ export interface ShiftSummary {
   items_sold: number;
 }
 
+// ---------- Inventory ----------
+
+export interface InventoryItem {
+  id: string;
+  name: string;
+  unit: string;
+  current_stock: number;
+  low_stock_threshold: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export type MovementType = 'purchase' | 'usage' | 'adjustment' | 'waste';
+
+export interface InventoryMovement {
+  id: string;
+  inventory_item_id: string;
+  movement_type: MovementType;
+  quantity: number;
+  note: string | null;
+  proof_upload_id: string | null;
+  performed_by: string | null;
+  created_at: string;
+}
+
+export interface InventoryMovementWithItem extends InventoryMovement {
+  item_name: string;
+}
+
+export type ProofStatus = 'pending' | 'approved' | 'rejected';
+
+export interface ProofUpload {
+  id: string;
+  storage_path: string;
+  original_filename: string;
+  file_size_bytes: number;
+  mime_type: string;
+  submitted_name: string | null;
+  item_name: string | null;
+  supplier_name: string | null;
+  uploader_note: string | null;
+  status: ProofStatus;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  review_note: string | null;
+  linked_movement_id: string | null;
+  created_at: string;
+}
+
+// ---------- Offline ----------
+
 export interface QueuedAction {
   id: string;
   action: string;
