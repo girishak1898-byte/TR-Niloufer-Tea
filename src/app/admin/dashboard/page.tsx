@@ -33,10 +33,14 @@ export default function DashboardPage() {
   const [pendingProofsCount, setPendingProofsCount] = useState(0);
   const [recentMovements, setRecentMovements] = useState<InventoryMovementWithItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  });
 
   const fetchData = useCallback(async () => {
     const [statsResult, shiftsResult, salesResult, invResult] = await Promise.all([
-      getAdminDashboardStats(),
+      getAdminDashboardStats(selectedDate),
       getActiveShifts(),
       getRecentSales(10),
       getInventoryDashboardStats(),
@@ -58,7 +62,7 @@ export default function DashboardPage() {
       setRecentMovements(invResult.data.recent_movements);
     }
     setLoading(false);
-  }, []);
+  }, [selectedDate]);
 
   useEffect(() => {
     fetchData();
@@ -78,15 +82,23 @@ export default function DashboardPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-sm text-gray-500">
-          Auto-refreshes every 30s
-        </p>
+        <div className="flex items-center gap-3">
+          <input
+            type="date"
+            value={selectedDate}
+            onChange={(e) => { setSelectedDate(e.target.value); setLoading(true); }}
+            className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-chai-500 focus:outline-none focus:ring-1 focus:ring-chai-500"
+          />
+          <p className="hidden text-sm text-gray-500 sm:block">
+            Auto-refreshes every 30s
+          </p>
+        </div>
       </div>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
         <StatCard
-          title="Today Total"
+          title="Total Revenue"
           value={formatCurrency(stats?.total_revenue ?? 0)}
           subtitle={`${stats?.items_sold ?? 0} items sold`}
           icon={
@@ -117,7 +129,7 @@ export default function DashboardPage() {
           color="blue"
         />
         <StatCard
-          title="Orders Today"
+          title="Orders"
           value={String(stats?.total_sales ?? 0)}
           subtitle={`${stats?.active_workers ?? 0} active employees`}
           icon={
@@ -208,7 +220,7 @@ export default function DashboardPage() {
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-gray-500">No items sold today</p>
+              <p className="text-sm text-gray-500">No items sold on this date</p>
             )}
           </div>
 

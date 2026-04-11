@@ -194,7 +194,7 @@ export default function WorkerDashboardPage() {
           {/* Upload Shortcut */}
           <div className="mb-6">
             <Link
-              href="/upload"
+              href="/worker/upload"
               className="flex items-center justify-center gap-2 rounded-xl border-2 border-dashed border-chai-300 bg-chai-50 px-4 py-4 text-center text-chai-700 transition-colors hover:bg-chai-100 active:bg-chai-200"
             >
               <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">

@@ -27,10 +27,13 @@ export async function uploadProof(formData: FormData) {
     const file = formData.get('file') as File | null;
     const submittedName = (formData.get('submitted_name') as string)?.trim() || null;
     const itemName = (formData.get('item_name') as string)?.trim() || null;
+    const selectedItemId = (formData.get('selected_item_id') as string)?.trim() || null;
     const supplierName = (formData.get('supplier_name') as string)?.trim() || null;
     const uploaderNote = (formData.get('uploader_note') as string)?.trim() || null;
     const quantityStr = (formData.get('quantity') as string)?.trim() || null;
     const amountStr = (formData.get('amount') as string)?.trim() || null;
+    const employeeId = (formData.get('employee_id') as string)?.trim() || null;
+    const uploadSource = ((formData.get('upload_source') as string)?.trim() || 'public') as 'public' | 'employee_portal';
 
     const quantity = quantityStr ? parseFloat(quantityStr) : null;
     const amountPence = amountStr ? Math.round(parseFloat(amountStr) * 100) : null;
@@ -105,7 +108,10 @@ export async function uploadProof(formData: FormData) {
         file_size_bytes: processedBuffer.length,
         mime_type: finalMimeType,
         submitted_name: submittedName,
+        employee_id: employeeId,
+        upload_source: uploadSource,
         item_name: itemName,
+        linked_inventory_item_id: selectedItemId,
         supplier_name: supplierName,
         uploader_note: uploaderNote,
         quantity,

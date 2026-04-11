@@ -12,6 +12,7 @@ const MAX_SIZE_MB = 10;
 
 export default function UploadPage() {
   const [submittedName, setSubmittedName] = useState('');
+  const [selectedItemId, setSelectedItemId] = useState('');
   const [selectedItemName, setSelectedItemName] = useState('');
   const [manualItemName, setManualItemName] = useState('');
   const [showManualInput, setShowManualInput] = useState(false);
@@ -108,6 +109,8 @@ export default function UploadPage() {
     formData.append('file', file);
     formData.append('submitted_name', submittedName);
     formData.append('item_name', effectiveItemName);
+    formData.append('upload_source', 'public');
+    if (selectedItemId) formData.append('selected_item_id', selectedItemId);
     formData.append('supplier_name', supplierName);
     formData.append('uploader_note', uploaderNote);
     if (quantity) formData.append('quantity', quantity);
@@ -119,6 +122,7 @@ export default function UploadPage() {
     if (result.success) {
       setSuccess(true);
       setSubmittedName('');
+      setSelectedItemId('');
       setSelectedItemName('');
       setManualItemName('');
       setSearchQuery('');
@@ -204,6 +208,7 @@ export default function UploadPage() {
                     onChange={(e) => {
                       setSearchQuery(e.target.value);
                       setSelectedItemName('');
+                      setSelectedItemId('');
                       setShowDropdown(true);
                     }}
                     onFocus={() => setShowDropdown(true)}
@@ -221,6 +226,7 @@ export default function UploadPage() {
                             type="button"
                             onClick={() => {
                               setSelectedItemName(item.name);
+                              setSelectedItemId(item.id);
                               setSearchQuery('');
                               setShowDropdown(false);
                             }}
@@ -251,6 +257,7 @@ export default function UploadPage() {
                     setManualItemName('');
                   } else {
                     setSelectedItemName('');
+                    setSelectedItemId('');
                     setSearchQuery('');
                   }
                 }}

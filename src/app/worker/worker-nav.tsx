@@ -63,7 +63,7 @@ const navItems = [
     ),
   },
   {
-    href: '/upload',
+    href: '/worker/upload',
     label: 'Upload',
     icon: (
       <svg

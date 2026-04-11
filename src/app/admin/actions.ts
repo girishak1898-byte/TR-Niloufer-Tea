@@ -49,14 +49,18 @@ export async function adminLogout() {
 
 // ---------- Dashboard ----------
 
-export async function getAdminDashboardStats() {
+export async function getAdminDashboardStats(dateStr?: string) {
   try {
     const supabase = createServiceClient();
 
-    // Get today's date range (IST-friendly: use local midnight)
-    const today = new Date();
-    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate()).toISOString();
-    const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1).toISOString();
+    // Parse the selected date or default to today (UK timezone)
+    const target = dateStr ? new Date(dateStr + 'T00:00:00Z') : new Date();
+    const startOfDay = dateStr
+      ? new Date(dateStr + 'T00:00:00Z').toISOString()
+      : new Date(target.getFullYear(), target.getMonth(), target.getDate()).toISOString();
+    const endOfDay = dateStr
+      ? new Date(new Date(dateStr + 'T00:00:00Z').getTime() + 24 * 60 * 60 * 1000).toISOString()
+      : new Date(target.getFullYear(), target.getMonth(), target.getDate() + 1).toISOString();
 
     // Fetch today's completed sales
     const { data: sales, error: salesError } = await supabase

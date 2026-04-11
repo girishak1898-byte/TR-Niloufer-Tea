@@ -98,8 +98,22 @@ export default function ProofsPage() {
                 </span>
               </div>
 
+              <div className="mb-1 flex items-center gap-1.5">
+                <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
+                  proof.upload_source === 'employee_portal'
+                    ? 'bg-indigo-100 text-indigo-800'
+                    : 'bg-gray-100 text-gray-700'
+                }`}>
+                  {proof.upload_source === 'employee_portal' ? 'Employee' : 'Public'}
+                </span>
+              </div>
               {proof.submitted_name && (
-                <p className="text-sm text-gray-600">By: {proof.submitted_name}</p>
+                <p className="text-sm text-gray-600">
+                  By: {proof.submitted_name}
+                  {proof.employee_id && proof.upload_source === 'employee_portal' && (
+                    <span className="ml-1 text-xs text-indigo-600">(verified)</span>
+                  )}
+                </p>
               )}
               {proof.supplier_name && (
                 <p className="text-sm text-gray-600">Supplier: {proof.supplier_name}</p>
@@ -172,7 +186,8 @@ export default function ProofsPage() {
             <div className="space-y-1 text-sm text-gray-600">
               <p><strong>File:</strong> {previewProof.original_filename}</p>
               <p><strong>Size:</strong> {(previewProof.file_size_bytes / 1024).toFixed(0)} KB</p>
-              {previewProof.submitted_name && <p><strong>Submitted by:</strong> {previewProof.submitted_name}</p>}
+              <p><strong>Source:</strong> {previewProof.upload_source === 'employee_portal' ? 'Employee Portal' : 'Public'}</p>
+              {previewProof.submitted_name && <p><strong>Submitted by:</strong> {previewProof.submitted_name}{previewProof.employee_id && previewProof.upload_source === 'employee_portal' ? ' (verified employee)' : ''}</p>}
               {previewProof.supplier_name && <p><strong>Supplier:</strong> {previewProof.supplier_name}</p>}
               {previewProof.quantity && <p><strong>Quantity:</strong> {previewProof.quantity}</p>}
               {previewProof.amount_pence && <p><strong>Amount:</strong> £{(previewProof.amount_pence / 100).toFixed(2)}</p>}

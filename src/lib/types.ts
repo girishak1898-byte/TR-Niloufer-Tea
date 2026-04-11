@@ -129,6 +129,7 @@ export interface InventoryMovementWithItem extends InventoryMovement {
 }
 
 export type ProofStatus = 'pending' | 'approved' | 'rejected';
+export type UploadSource = 'public' | 'employee_portal';
 
 export interface ProofUpload {
   id: string;
@@ -137,7 +138,10 @@ export interface ProofUpload {
   file_size_bytes: number;
   mime_type: string;
   submitted_name: string | null;
+  employee_id: string | null;
+  upload_source: UploadSource;
   item_name: string | null;
+  linked_inventory_item_id: string | null;
   supplier_name: string | null;
   uploader_note: string | null;
   status: ProofStatus;
